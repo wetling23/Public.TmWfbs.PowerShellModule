@@ -72,7 +72,7 @@
         Return "Success"
     }
 } #1.0.0.8
-Function Get-TmwfbsComputer {
+Function Get-TmWfbsComputer {
     <#
         .DESCRIPTION
 
@@ -80,10 +80,13 @@ Function Get-TmwfbsComputer {
             Author: Mike Hashemi
             V1.0.0.0 date: 3 June 2019
                 - Initial release.
+            V1.0.0.1 date: 4 June 2019
+                - Updated variable name.
+                - Added GitHub link.
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/components/get.aspx
         .LINK
-            
+            https://github.com/wetling23/Public.TmWfbs.PowerShellModule
         .PARAMETER AccessToken
             Represents the access token used to connected to TrendMicro's SMPI REST API.
         .PARAMETER SecretKey
@@ -268,13 +271,13 @@ Function Get-TmwfbsComputer {
         }
     }
     Else {
-        $message = ("{0}: No computers found at: {1}." -f [datetime]::Now, $customer.name)
+        $message = ("{0}: No computers found at: {1}." -f [datetime]::Now, $customers.name)
         If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Warning $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Warning $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Warning -Message $message -EventId 5417 }
     }
 
     $list
-} #1.0.0.0
-Function Get-TmwfbsCustomer {
+} #1.0.0.1
+Function Get-TmWfbsCustomer {
     <#
         .DESCRIPTION
             Retrieves a customer instance from Trend Micro's SMPI REST API. If no customer name or ID are provided, the command returns properties of all customers.
@@ -282,10 +285,12 @@ Function Get-TmwfbsCustomer {
             Author: Mike Hashemi
             V1.0.0.0 date: 3 June 2019
                 - Initial release.
+            V1.0.0.1 date: 4 June 2019
+                - Added GitHub link.
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/customers/get.aspx
         .LINK
-            
+            https://github.com/wetling23/Public.TmWfbs.PowerShellModule
         .PARAMETER AccessToken
             Represents the access token used to connected to TrendMicro's SMPI REST API.
         .PARAMETER SecretKey
@@ -457,5 +462,5 @@ Function Get-TmwfbsCustomer {
             $list
         }
     }
-} #1.0.0.0
+} #1.0.0.1
 Export-ModuleMember -Alias * -Function *

@@ -1,4 +1,4 @@
-Function Get-TmwfbsCustomer {
+Function Get-TmWfbsCustomer {
     <#
         .DESCRIPTION
             Retrieves a customer instance from Trend Micro's SMPI REST API. If no customer name or ID are provided, the command returns properties of all customers.
@@ -6,10 +6,12 @@ Function Get-TmwfbsCustomer {
             Author: Mike Hashemi
             V1.0.0.0 date: 3 June 2019
                 - Initial release.
+            V1.0.0.1 date: 4 June 2019
+                - Added GitHub link.
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/customers/get.aspx
         .LINK
-            
+            https://github.com/wetling23/Public.TmWfbs.PowerShellModule
         .PARAMETER AccessToken
             Represents the access token used to connected to TrendMicro's SMPI REST API.
         .PARAMETER SecretKey
@@ -181,4 +183,4 @@ Function Get-TmwfbsCustomer {
             $list
         }
     }
-} #1.0.0.0
+} #1.0.0.1
