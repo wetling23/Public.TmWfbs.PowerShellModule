@@ -187,12 +187,15 @@ Function Get-TmWfbsComputer {
         If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
         While ($currentLoopCount -le $maxLoopCount) {
-            $message = ("{0}: Current loop count is: {1}." -f [datetime]::Now, $currentLoopCount)
+            $message = ("{0}: Current loop count is: {1} of {2}." -f [datetime]::Now, $currentLoopCount, $maxLoopCount)
             If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
             $resourcePath = "/SMPI/v2.8/service/wfbss/api/components?cids=$($customer.Id)&page=$page$ComputerId"
 
-            $message = ("{0}: Attempting to generate headers." -f [datetime]::Now)
+            $message = ("{0}: The value of `$resourcePath is: {1}." -f [datetime]::Now, $resourcePath)
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+
+            $message = ("{0}: Generating header for Invoke-RestMethod to use." -f [datetime]::Now)
             If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
             $headers = generate_cspi_headers $httpMethod $resourcePath $AccessToken $internalSecret_Key $epoch ""
