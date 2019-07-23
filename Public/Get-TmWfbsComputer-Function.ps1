@@ -230,7 +230,7 @@ Function Get-TmWfbsComputer {
             If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Warning $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Warning $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Warning -Message $message -EventId 5417 }
         }
 
-        $message = ("{0}: Returning {1} computers." -f [datetime]::Now, $list.count)
+        $message = ("{0}: Returning {1} computers." -f [datetime]::Now, $list.computers.count)
         If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
         $list
