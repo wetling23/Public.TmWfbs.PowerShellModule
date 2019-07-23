@@ -84,6 +84,7 @@ Function Get-TmWfbsComputer {
                 - Updated variable name.
                 - Added GitHub link.
             V1.0.0.2 date: 16 July 2019
+            V1.0.0.3 date: 23 July 2019
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/components/get.aspx
         .LINK
@@ -157,10 +158,10 @@ Function Get-TmWfbsComputer {
     }
 
     $message = ("{0}: Beginning {1}." -f [datetime]::Now, $MyInvocation.MyCommand)
-    If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+    If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
     $message = ("{0}: Operating in the `"{1}`" ParameterSet." -f [datetime]::Now, $PsCmdlet.ParameterSetName)
-    If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+    If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
     # Initialize variables
     $epoch = [Math]::Round((New-TimeSpan -start(Get-Date -Date "1/1/1970") -end(Get-Date).ToUniversalTime()).TotalSeconds)
@@ -182,7 +183,7 @@ Function Get-TmWfbsComputer {
         $ComputerId = "&ccids=$($ComputerId -join ",")"
 
         $message = ("{0}: The value of `$ComputerId is {1}." -f [datetime]::Now, ($ComputerId | Out-String))
-        If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
     }
     Else {
         $ComputerId = $null
@@ -190,6 +191,9 @@ Function Get-TmWfbsComputer {
 
     #region in-line functions
     Function get_content_md5([String] $content) {
+        $message = ("{0}: Getting MD5." -f [datetime]::Now)
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+
         $md5 = new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
         $utf8 = new-object -TypeName System.Text.UTF8Encoding
         $digest = [System.Convert]::ToBase64String($md5.ComputeHash($utf8.GetBytes($content)))
@@ -197,6 +201,9 @@ Function Get-TmWfbsComputer {
         return $digest
     }
     Function calc_signature([String] $internalSecret_Key, [String] $x_posix_time, [String] $request_httpMethod, [String] $request_uri, [String] $content) {
+        $message = ("{0}: Calculate signature." -f [datetime]::Now)
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+
         $payload = $x_posix_time + $request_httpMethod.ToUpper() + $request_uri
         if ($content) {
             $payload += get_content_md5($content)
@@ -209,6 +216,9 @@ Function Get-TmWfbsComputer {
         return $signature
     }
     Function generate_cspi_headers($httpMethod, $uri, $AccessToken, $internalSecret_Key, $posix_time, $content) {
+        $message = ("{0}: Generate CSPI headers." -f [datetime]::Now)
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+
         $signature = calc_signature $internalSecret_Key $posix_time $httpMethod $uri $content
         $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $headers.Add("Content-Type", "application/json")
@@ -220,8 +230,8 @@ Function Get-TmWfbsComputer {
     }
     #endregion in-line functions
 
-    $message = ("{0}: Attempting to get customer info, based on whether the customer name or Id were passed." -f [datetime]::Now, $MyInvocation.MyCommand)
-    If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+    $message = ("{0}: Attempting to get customer info, based on whether the customer name or Id were passed." -f [datetime]::Now)
+    If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
     If ($CustomerName) {
         $customers = [System.Collections.Generic.List[object]]@((Get-TmWfbsCustomer -AccessToken $AccessToken -SecretKey $SecretKey -Name $CustomerName @commandParams).customers)
@@ -246,16 +256,16 @@ Function Get-TmWfbsComputer {
         $epoch = [Math]::Round((New-TimeSpan -start(Get-Date -Date "1/1/1970") -end(Get-Date).ToUniversalTime()).TotalSeconds) # Resetting, in case of long-run time.
 
         $message = ("{0}: Looking for computers at: {1}." -f [datetime]::Now, $customer.name)
-        If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Error -Message $message -EventId 5417 }
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
         While ($currentLoopCount -le $maxLoopCount) {
-            $message = ("{0}: Current loop count is: {0}." -f [datetime]::Now, $currentLoopCount)
-            If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+            $message = ("{0}: Current loop count is: {1}." -f [datetime]::Now, $currentLoopCount)
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
             $resourcePath = "/SMPI/v2.8/service/wfbss/api/components?cids=$($customer.Id)&page=$page$ComputerId"
 
-            $message = ("{0}: Attempting to generate headers." -f [datetime]::Now, $resourcePath)
-            If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+            $message = ("{0}: Attempting to generate headers." -f [datetime]::Now)
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
             $headers = generate_cspi_headers $httpMethod $resourcePath $AccessToken $internalSecret_Key $epoch ""
 
@@ -266,7 +276,7 @@ Function Get-TmWfbsComputer {
             $maxLoopCount = $response.paging.total / $response.paging.limit
 
             $message = ("{0}: The value of `$maxLoopCount is: {1}." -f [datetime]::Now, $maxLoopCount)
-            If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
             $currentLoopCount++
             $page++
@@ -286,7 +296,7 @@ Function Get-TmWfbsComputer {
 
         $list
     }
-} #1.0.0.2
+} #1.0.0.3
 Function Get-TmWfbsCustomer {
     <#
         .DESCRIPTION
@@ -298,6 +308,7 @@ Function Get-TmWfbsCustomer {
             V1.0.0.1 date: 4 June 2019
                 - Added GitHub link.
             V1.0.0.2 date: 9 July 2019
+            V1.0.0.3 date: 23 July 2019
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/customers/get.aspx
         .LINK
@@ -366,10 +377,10 @@ Function Get-TmWfbsCustomer {
     }
 
     $message = ("{0}: Beginning {1}." -f [datetime]::Now, $MyInvocation.MyCommand)
-    If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+    If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
     $message = ("{0}: Operating in the `"{1}`" ParameterSet." -f [datetime]::Now, $PsCmdlet.ParameterSetName)
-    If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+    If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
     # Initialize variables
     $epoch = [Math]::Round((New-TimeSpan -start(Get-Date -Date "1/1/1970") -end(Get-Date).ToUniversalTime()).TotalSeconds)
@@ -383,26 +394,35 @@ Function Get-TmWfbsCustomer {
 
     #region in-line functions
     Function get_content_md5([String] $content) {
+        $message = ("{0}: Getting MD5." -f [datetime]::Now)
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+
         $md5 = new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
         $utf8 = new-object -TypeName System.Text.UTF8Encoding
         $digest = [System.Convert]::ToBase64String($md5.ComputeHash($utf8.GetBytes($content)))
         # Write-Host $digest
         return $digest
     }
-    Function calc_signature([String] $SecretKey, [String] $x_posix_time, [String] $request_httpMethod, [String] $request_uri, [String] $content) {
+    Function calc_signature([String] $internalSecret_Key, [String] $x_posix_time, [String] $request_httpMethod, [String] $request_uri, [String] $content) {
+        $message = ("{0}: Calculate signature." -f [datetime]::Now)
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+
         $payload = $x_posix_time + $request_httpMethod.ToUpper() + $request_uri
         if ($content) {
             $payload += get_content_md5($content)
         }
         # Write-Host "payload: $payload"
         $hmac = New-Object System.Security.Cryptography.HMACSHA256
-        $hmac.Key = [Text.Encoding]::UTF8.GetBytes($SecretKey)
+        $hmac.Key = [Text.Encoding]::UTF8.GetBytes($internalSecret_Key)
         $signature = [System.Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($payload)))
         # Write-Host "signature: $signature"
         return $signature
     }
-    Function generate_cspi_headers($httpMethod, $uri, $AccessToken, $SecretKey, $posix_time, $content) {
-        $signature = calc_signature $SecretKey $posix_time $httpMethod $uri $content
+    Function generate_cspi_headers($httpMethod, $uri, $AccessToken, $internalSecret_Key, $posix_time, $content) {
+        $message = ("{0}: Generate CSPI headers." -f [datetime]::Now)
+        If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+
+        $signature = calc_signature $internalSecret_Key $posix_time $httpMethod $uri $content
         $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
         $headers.Add("Content-Type", "application/json")
         $headers.Add("x-access-token", $AccessToken)
@@ -418,25 +438,25 @@ Function Get-TmWfbsCustomer {
             $resourcePath = "/SMPI/v2.8/service/wfbss/api/customers?cids=$Id"
 
             $message = ("{0}: Set `$resourcePath to: {1}." -f [datetime]::Now, $resourcePath)
-            If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
         }
         "CustomerName" {
             $resourcePath = "/SMPI/v2.8/service/wfbss/api/customers?q=$Name"
 
             $message = ("{0}: Set `$resourcePath to: {1}." -f [datetime]::Now, $resourcePath)
-            If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
         }
     }
 
     Switch ($PsCmdlet.ParameterSetName) {
         { $_ -in ("CustomerId", "CustomerName") } {
-            $message = ("{0}: Attempting to generate headers." -f [datetime]::Now, $resourcePath)
-            If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+            $message = ("{0}: Attempting to generate headers." -f [datetime]::Now)
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
             $headers = generate_cspi_headers $httpMethod $resourcePath $AccessToken $internalSecretKey $epoch ""
 
-            $message = ("{0}: Attempting to retrieve instance." -f [datetime]::Now, $resourcePath)
-            If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+            $message = ("{0}: Attempting to retrieve instance." -f [datetime]::Now)
+            If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
             $response = Invoke-RestMethod -Uri "$BaseUrl$resourcePath" -Method $httpMethod -Headers $headers -UseBasicParsing
 
@@ -444,21 +464,21 @@ Function Get-TmWfbsCustomer {
         }
         "All" {
             While ($currentLoopCount -le $maxLoopCount) {
-                $message = ("{0}: Current loop count is: {0}." -f [datetime]::Now, $currentLoopCount)
-                If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+                $message = ("{0}: Current loop count is: {1}." -f [datetime]::Now, $currentLoopCount)
+                If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
                 $resourcePath = "/SMPI/v2.8/service/wfbss/api/customers?page=$page"
 
-                $message = ("{0}: The value of `$resourcePath is: {0}." -f [datetime]::Now, $resourcePath)
-                If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+                $message = ("{0}: The value of `$resourcePath is: {1}." -f [datetime]::Now, $resourcePath)
+                If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
-                $message = ("{0}: Attempting to generate headers." -f [datetime]::Now, $resourcePath)
-                If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+                $message = ("{0}: Attempting to generate headers." -f [datetime]::Now)
+                If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
                 $headers = generate_cspi_headers $httpMethod $resourcePath $AccessToken $internalSecretKey $epoch ""
 
                 $message = ("{0}: Attempting to retrieve page {1} of instances." -f [datetime]::Now, $page)
-                If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+                If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
                 $response = Invoke-RestMethod -Uri "$BaseUrl$resourcePath" -Method $httpMethod -Headers $headers
 
@@ -467,7 +487,7 @@ Function Get-TmWfbsCustomer {
                 $maxLoopCount = $response.paging.total / $response.paging.limit
 
                 $message = ("{0}: The value of `$maxLoopCount is: {1}." -f [datetime]::Now, $maxLoopCount)
-                If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
+                If (($BlockLogging) -AND (($PSBoundParameters['Verbose']) -or $VerbosePreference -eq 'Continue')) { Write-Verbose $message } ElseIf (($PSBoundParameters['Verbose']) -or ($VerbosePreference = 'Continue')) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
                 $currentLoopCount++
                 $page++
@@ -476,5 +496,5 @@ Function Get-TmWfbsCustomer {
             $list
         }
     }
-} #1.0.0.2
+} #1.0.0.3
 Export-ModuleMember -Alias * -Function *

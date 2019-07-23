@@ -246,7 +246,7 @@ Function Get-TmWfbsComputer {
         $epoch = [Math]::Round((New-TimeSpan -start(Get-Date -Date "1/1/1970") -end(Get-Date).ToUniversalTime()).TotalSeconds) # Resetting, in case of long-run time.
 
         $message = ("{0}: Looking for computers at: {1}." -f [datetime]::Now, $customer.name)
-        If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Error -Message $message -EventId 5417 }
+        If (($BlockLogging) -AND ($PSBoundParameters['Verbose'])) { Write-Verbose $message } ElseIf ($PSBoundParameters['Verbose']) { Write-Verbose $message; Write-EventLog -LogName Application -Source $EventLogSource -EntryType Information -Message $message -EventId 5417 }
 
         While ($currentLoopCount -le $maxLoopCount) {
             $message = ("{0}: Current loop count is: {0}." -f [datetime]::Now, $currentLoopCount)
