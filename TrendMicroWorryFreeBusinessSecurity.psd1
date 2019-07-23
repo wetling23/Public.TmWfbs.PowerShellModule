@@ -4,7 +4,7 @@
     RootModule        = 'TrendMicroWorryFreeBusinessSecurity.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0.0'
+    ModuleVersion     = '1.0.0.3'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -96,7 +96,7 @@
             # IconUri = ''
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'Initial release.'
+            ReleaseNotes = 'Updated output.'
 
             # External dependent modules of this module
             # ExternalModuleDependencies = ''
