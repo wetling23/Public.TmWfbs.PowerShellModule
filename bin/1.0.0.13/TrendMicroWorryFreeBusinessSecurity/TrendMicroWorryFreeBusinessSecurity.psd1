@@ -16,10 +16,10 @@
     Author            = 'Mike Hashemi'
 
     # Company or vendor of this module
-    CompanyName       = 'Synoptek'
+    CompanyName       = ''
 
     # Copyright statement for this module
-    Copyright         = '(c) 2019 mhashemi. All rights reserved.'
+    Copyright         = '(c) 2021 mhashemi. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description       = 'Trend Micro Worry Free Business Security REST API-related functions.'
