@@ -13,6 +13,7 @@ Function Get-TmWfbsComputer {
             V1.0.0.3 date: 23 July 2019
             V1.0.0.4 date: 20 December 2019
             V1.0.0.5 date: 30 June 2020
+            V1.0.0.6 date: 5 October 2021
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/components/get.aspx
         .LINK
@@ -83,6 +84,7 @@ Function Get-TmWfbsComputer {
     $message = ("{0}: Beginning {1}." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $MyInvocation.MyCommand)
     If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
 
+    #region setup
     $message = ("{0}: Operating in the `"{1}`" ParameterSet." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $PsCmdlet.ParameterSetName)
     If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
 
@@ -113,6 +115,11 @@ Function Get-TmWfbsComputer {
         ElseIf ($LogPath -and (-NOT $EventLogSource)) {
             $commandParams = @{
                 LogPath = $LogPath
+            }
+        }
+        Else {
+            $commandParams = @{
+                Verbose = $false
             }
         }
     }
@@ -167,6 +174,7 @@ Function Get-TmWfbsComputer {
         return $headers
     }
     #endregion in-line functions
+    #endregion setup
 
     $message = ("{0}: Attempting to get customer info, based on whether the customer name or Id were passed." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"))
     If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
@@ -185,8 +193,7 @@ Function Get-TmWfbsComputer {
         Return
     }
 
-    $customers | ForEach-Object {
-        $customer = $_
+    Foreach ($customer in $customers) {
         $currentLoopCount = 0
         $maxLoopCount = 0
         $list = [System.Collections.Generic.List[object]]::new()
@@ -248,4 +255,4 @@ Function Get-TmWfbsComputer {
 
         $list
     }
-} #1.0.0.5
+} #1.0.0.6
