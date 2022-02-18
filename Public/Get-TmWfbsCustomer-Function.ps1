@@ -12,6 +12,7 @@ Function Get-TmWfbsCustomer {
             V1.0.0.3 date: 23 July 2019
             V1.0.0.4 date: 20 December 2019
             V1.0.0.5 date: 30 June 2020
+            V2022.18.2.0
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/customers/get.aspx
         .LINK
@@ -85,8 +86,11 @@ Function Get-TmWfbsCustomer {
     $list = [System.Collections.Generic.List[object]]::new()
     $page = 1
     $httpMethod = "GET"
-    $Name = $Name.Replace(" ", "%20")
     $internalSecretKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecretKey))
+
+    If ($Name) {
+        $Name = $Name.Replace(" ", "%20")
+    }
 
     If ($PSBoundParameters['Verbose']) {
         $commandParams = @{
