@@ -95,7 +95,7 @@ Function Get-TmWfbsComputer {
     $epoch = [Math]::Round((New-TimeSpan -start(Get-Date -Date "1/1/1970") -end(Get-Date).ToUniversalTime()).TotalSeconds)
     $httpMethod = "GET"
     $internalSecret_Key = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecretKey))
-    $customerList = [System.Collections.Generic.List[object]]::new()
+    $list = [System.Collections.Generic.List[object]]::new()
 
     If ($PSBoundParameters['Verbose']) {
         $commandParams = @{
