@@ -12,7 +12,8 @@ Function Get-TmWfbsCustomer {
             V1.0.0.3 date: 23 July 2019
             V1.0.0.4 date: 20 December 2019
             V1.0.0.5 date: 30 June 2020
-            V2022.18.2.0
+            V2022.02.18.0
+            V2022.03.01.0
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/customers/get.aspx
         .LINK
@@ -185,18 +186,19 @@ Function Get-TmWfbsCustomer {
 
             Try {
                 $response = Invoke-RestMethod -Uri "$BaseUrl$resourcePath" -Method $httpMethod -Headers $headers -UseBasicParsing -ErrorAction Stop
-            }
-            Catch {
+            } Catch {
                 $message = ("{0}: Error running Invoke-RestMethod. To prevent errors, {1} will exit. The specific error is: {2}" -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $MyInvocation.MyCommand, $_.Exception.Message)
                 If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Error -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Error -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Error -Message $message -BlockStdErr $BlockStdErr }
 
                 Return "Error"
             }
 
+            $list.AddRange($response.customers)
+
             $message = ("{0}: Returning {1} customers." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $list.count)
             If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
 
-            $response
+            $list
         }
         "All" {
             While ($currentLoopCount -le $maxLoopCount) {
@@ -218,8 +220,7 @@ Function Get-TmWfbsCustomer {
 
                 Try {
                     $response = Invoke-RestMethod -Uri "$BaseUrl$resourcePath" -Method $httpMethod -Headers $headers -ErrorAction Stop
-                }
-                Catch {
+                } Catch {
                     $message = ("{0}: Error running Invoke-RestMethod. To prevent errors, {1} will exit. The specific error is: {2}" -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $MyInvocation.MyCommand, $_.Exception.Message)
                     If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Error -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Error -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Error -Message $message -BlockStdErr $BlockStdErr }
 
@@ -237,10 +238,10 @@ Function Get-TmWfbsCustomer {
                 $page++
             }
 
-            $message = ("{0}: Returning {1} customers." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $list.count)
+            $message = ("{0}: Returning {1} customers." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $list.id.count)
             If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
 
             $list
         }
     }
-} #1.0.0.5
+} #V2022.03.01.0

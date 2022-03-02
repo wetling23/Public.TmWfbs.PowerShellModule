@@ -1,7 +1,7 @@
 Function Get-TmWfbsComputer {
     <#
         .DESCRIPTION
-
+            Retrieve customers, then retrieve computers for that customer. Alternatively, provide a computer ID to retrieve that device specifically. Finally, omit customer name/ID and computer ID to retrieve all computers.
         .NOTES
             Author: Mike Hashemi
             V1.0.0.0 date: 3 June 2019
@@ -14,6 +14,9 @@ Function Get-TmWfbsComputer {
             V1.0.0.4 date: 20 December 2019
             V1.0.0.5 date: 30 June 2020
             V1.0.0.6 date: 5 October 2021
+            V2022.02.18.0
+            V2022.03.01.0
+            V2022.03.02.0
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/components/get.aspx
         .LINK
@@ -61,7 +64,7 @@ Function Get-TmWfbsComputer {
         [Parameter(Mandatory)]
         [SecureString]$SecretKey,
 
-        [Parameter(Mandatory, ParameterSetName = 'All')]
+        [Parameter(Mandatory, ParameterSetName = 'CustomerName')]
         [string]$CustomerName,
 
         [Parameter(Mandatory, ParameterSetName = 'CustomerId')]
@@ -91,8 +94,8 @@ Function Get-TmWfbsComputer {
     # Initialize variables
     $epoch = [Math]::Round((New-TimeSpan -start(Get-Date -Date "1/1/1970") -end(Get-Date).ToUniversalTime()).TotalSeconds)
     $httpMethod = "GET"
-    $CustomerName = $CustomerName.Replace(" ", "%20")
     $internalSecret_Key = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecretKey))
+    $customerList = [System.Collections.Generic.List[object]]::new()
 
     If ($PSBoundParameters['Verbose']) {
         $commandParams = @{
@@ -122,16 +125,6 @@ Function Get-TmWfbsComputer {
                 Verbose = $false
             }
         }
-    }
-
-    If ($ComputerId) {
-        $ComputerId = "&ccids=$($ComputerId -join ",")"
-
-        $message = ("{0}: The value of `$ComputerId is {1}." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), ($ComputerId | Out-String))
-        If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
-    }
-    Else {
-        $ComputerId = $null
     }
 
     #region in-line functions
@@ -176,29 +169,52 @@ Function Get-TmWfbsComputer {
     #endregion in-line functions
     #endregion setup
 
-    $message = ("{0}: Attempting to get customer info, based on whether the customer name or Id were passed." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"))
+    $message = ("{0}: Attempting to get customer data, before getting computer data." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"))
     If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
 
-    If ($CustomerName) {
-        $customers = [System.Collections.Generic.List[object]]@((Get-TmWfbsCustomer -AccessToken $AccessToken -SecretKey $SecretKey -Name $CustomerName @commandParams).customers)
-    }
-    ElseIf ($CustomerId) {
-        $customers = [System.Collections.Generic.List[object]]@((Get-TmWfbsCustomer -AccessToken $AccessToken -SecretKey $SecretKey -Id $CustomerId @commandParams).customers)
+    Switch ($PsCmdlet.ParameterSetName) {
+        "CustomerName" {
+            $message = ("{0}: Getting customer: {1}." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $CustomerName)
+            If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
+
+            $CustomerName = $CustomerName.Replace(" ", "%20")
+
+            $customers = [System.Collections.Generic.List[object]]@((Get-TmWfbsCustomer -AccessToken $AccessToken -SecretKey $SecretKey -Name $CustomerName @commandParams))
+        }
+        "CustomerId" {
+            $message = ("{0}: Getting customer: {1}." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $CustomerId)
+            If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
+
+            $customers = [System.Collections.Generic.List[object]]@((Get-TmWfbsCustomer -AccessToken $AccessToken -SecretKey $SecretKey -Id $CustomerId @commandParams))
+        }
+        "All" {
+            $message = ("{0}: Getting all customers." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"))
+            If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
+
+            $customers = [System.Collections.Generic.List[object]]@((Get-TmWfbsCustomer -AccessToken $AccessToken -SecretKey $SecretKey @commandParams))
+        }
     }
 
-    If ((($CustomerName) -or ($CustomerId)) -AND (-NOT($customers))) {
-        $message = ("{0}: Unable to locate the requested customer. To prevent errors, {1} will exit." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $MyInvocation.MyCommand)
-        If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Error -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Error -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Error -Message $message -BlockStdErr $BlockStdErr }
+    If ($ComputerId) {
+        $ComputerId = "&ccids=$($ComputerId -join ",")"
+    } Else {
+        $ComputerId = $null
+    }
 
-        Return
+    If ($customers.customers.eid) {
+        $message = ("{0}: Pulling customer properties out of `$customers.customers." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"))
+        If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
+
+        $customers = $customers.customers
     }
 
     Foreach ($customer in $customers) {
         $currentLoopCount = 0
-        $maxLoopCount = 0
-        $list = [System.Collections.Generic.List[object]]::new()
+        $maxLoopCount = 5
+        $customerList = [System.Collections.Generic.List[object]]::new()
         $page = 1
         $epoch = [Math]::Round((New-TimeSpan -start(Get-Date -Date "1/1/1970") -end(Get-Date).ToUniversalTime()).TotalSeconds) # Resetting, in case of long-run time.
+        $response = $null
 
         $message = ("{0}: Looking for computers at: {1}." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $customer.name)
         If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
@@ -219,30 +235,44 @@ Function Get-TmWfbsComputer {
 
             Try {
                 $response = Invoke-RestMethod -Uri "$BaseUrl$resourcePath" -Method $httpMethod -Headers $headers -UseBasicParsing -ErrorAction Stop
+
+                $currentLoopCount++
+                $page++
             }
             Catch {
-                $message = ("{0}: Error running Invoke-RestMethod. To prevent errors, {1} will exit. The specific error is: {2}" -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $MyInvocation.MyCommand, $_.Exception.Message)
-                If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Error -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Error -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Error -Message $message -BlockStdErr $BlockStdErr }
+                If (([datetime]$customer.expire -lt (Get-Date)) -and ($_.Exception.Message -match '.*404 \(Not Found\)')) {
+                    $message = ("{0}: The customer has expired, no devices returned." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"))
+                    If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
 
-                Return "Error"
+                    $currentLoopCount++
+                    Continue
+                }
+                Else {
+                    $message = ("{0}: Error running Invoke-RestMethod. To prevent errors, {1} will exit. The specific error is: {2}" -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $MyInvocation.MyCommand, $_.Exception.Message)
+                    If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Error -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Error -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Error -Message $message -BlockStdErr $BlockStdErr }
+
+                    Return "Error"
+                }
             }
 
-            $list.AddRange($response.customers)
+            If ($ComputerId) {
+                $customerList.Add($response.customers.computers)
+            } Else {
+                $customerList.AddRange($response.customers.computers)
+            }
 
             $maxLoopCount = $response.paging.total / $response.paging.limit
 
             $message = ("{0}: The value of `$maxLoopCount is: {1}." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $maxLoopCount)
             If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
-
-            $currentLoopCount++
-            $page++
         }
 
-        If ($list.computers.count -gt 0) {
-            # Convert last_connect_time from Unix to regular UTC, for each computer
-            $list.computers | ForEach-Object {
-                $_ | Add-Member -MemberType NoteProperty -Name last_connect_time_human -Value (New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0).AddSeconds($_.last_connect_time) -Force
-                $_ | Add-Member -MemberType NoteProperty -Name CustomerName -Value $customer.name -Force
+        If ($customerList.id.count -gt 0) {
+            # Convert last_connect_time from Unix to regular UTC, for each computer.
+            Foreach ($item in $customerList) {
+                $item | Add-Member -MemberType NoteProperty -Name last_connect_time_human -Value (New-Object -Type DateTime -ArgumentList 1970, 1, 1, 0, 0, 0, 0).AddSeconds($item.last_connect_time) -Force
+                $item | Add-Member -MemberType NoteProperty -Name CustomerName -Value $customer.name -Force
+                $item | Add-Member -MemberType NoteProperty -Name CustomerId -Value $customer.id -Force
             }
         }
         Else {
@@ -250,9 +280,16 @@ Function Get-TmWfbsComputer {
             If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Warning -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Warning -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Warning -Message $message -BlockStdErr $BlockStdErr }
         }
 
-        $message = ("{0}: Returning {1} computers." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $list.computers.count)
-        If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
+        If ($customers.id.Count -gt 1) {
+            $message = ("{0}: ---------------------------------------------------------------------------" -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $customer.name)
+            If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
+        }
 
-        $list
+        $list.Add($customerList)
     }
-} #1.0.0.6
+
+    $message = ("{0}: Returning {1} computers." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"), $list.id.count)
+    If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
+
+    $list
+} #V2022.03.02.0
