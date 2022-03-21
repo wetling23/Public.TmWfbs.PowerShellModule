@@ -17,6 +17,7 @@ Function Get-TmWfbsComputer {
             V2022.02.18.0
             V2022.03.01.0
             V2022.03.02.0
+            V2022.03.21.0
 
             https://cspi.trendmicro.com/docs/en-us/service-management-api/v28/reference/wfbss/components/get.aspx
         .LINK
@@ -206,6 +207,11 @@ Function Get-TmWfbsComputer {
         If ($PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue') { If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Verbose -Message $message -BlockStdErr $BlockStdErr } }
 
         $customers = $customers.customers
+    } ElseIf (($customers -eq "Error") -or ($null -eq $customers)) {
+        $message = ("{0}: No customers were retrieved, unable to continue." -f ([datetime]::Now).ToString("yyyy-MM-dd`THH:mm:ss"))
+        If ($EventLogSource -and (-NOT $LogPath)) { Out-PsLogging -EventLogSource $EventLogSource -MessageType Error -Message $message -BlockStdErr $BlockStdErr } ElseIf ($LogPath -and (-NOT $EventLogSource)) { Out-PsLogging -LogPath $LogPath -MessageType Error -Message $message -BlockStdErr $BlockStdErr } Else { Out-PsLogging -ScreenOnly -MessageType Error -Message $message -BlockStdErr $BlockStdErr }
+
+        Return "Error"
     }
 
     Foreach ($customer in $customers) {
